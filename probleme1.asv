@@ -5,17 +5,15 @@ T0 = 1/f0;
 Te = 1/fe;
 D = 2;
 t = (0:Te:D);
-nt0 = ceil(5*(T0/Te)); % nbre d'échantillons
+nt0 = ceil(5*(T0/Te)); % nbre d'échantillons (cast it to closest integer -->  ceil)
 
 figure;
-subplot(4,1,1);
+subplot(3,1,1);
 x1 = A*sin(2*pi*f0*t);
 analyze(t, x1, fe, nt0);
-
 x2 = abs(x1);
-subplot(4,1,2);
+subplot(3,1,2);
 analyze(t, x2, fe, nt0);
-
 x3 = [];
 modulo = mod(t,T0);
 for i = 1:length(modulo)
@@ -26,20 +24,19 @@ for i = 1:length(modulo)
         x3 = [x3, 0.5];
     end
 end
-subplot(4,1,3);
+
+subplot(3,1,3);
 analyze(t, x3, fe, nt0);
 
-t = (0:Te:D);
-nt0 = ceil(5*(T0/Te));
-B=8;
-%f0 = 1/80^(-3);
-f0 = 1000;
+B=1;
+f0 = 1/80^(-3);
 T0 = 1/f0;
 nt0 = ceil(5*(T0/Te));
 phi = pi/3;
-y = B*sin(2*pi*f0*t+phi);
+
+x4 = B*sin(2*pi*f0*nt0+phi);
 subplot(4,1,4);
-analyze(t, y, fe, nt0);
+analyze(t, x4, fe, nt0);
 
 function f = analyze(t, x, fe, nt0)
 plot(t(1:nt0),x(1:nt0));
@@ -51,7 +48,9 @@ disp("Fréquence échantillonage : "+ fe);
 % valeur moyenne
 % valeur_moyenne = (1/n2)*sum(x);
 Vm = mean(x(1:nt0));
-disp("Vm = "+ Vm)
+disp("Vm = "+ Vm);
+% Puissance instantanée
+P = 
 % puissance moyenne
 Pm = mean(x(1:nt0).^2);
 disp("Pm = "+ Pm +" W") % en W et dBm
