@@ -51,9 +51,9 @@ analyze(t, y, fe, nt0);
 
 % Autocorrélation 
 Cx1 = intercorellation(t, x1, x1, nt0, Te, 2);
-Cx1y = intercorellation(t, x1, y, nt0, Te, 2);
 Cx2y = intercorellation(t, x2, y, nt0, Te, 5);
 Cx3y = intercorellation(t, x3, y, nt0, Te, 8);
+Cx1y = intercorellation(t, x1, y, nt0, Te, 11);
 
 %Sample the signal, sound it and plot it.
 
@@ -89,15 +89,12 @@ fileToSignal = y;
 end
 
 function Cxy = intercorellation(t, x, y, nt0, T0, emplacement)
+Cxy = [];
 n = length(x);
-
-B(numel(A)) = 0;
-xco = [x, zeros(1, length(x)*2-1)];
+y1 = [y,zeros(1,n-1)];
 for i=1:n
-    Cxy = sum(x(1,i:n).*y(1,i:n+i-1));
+    Cxy = [Cxy, (1/n)*sum(x.*y1(n+i-1))];
 end
-
-
 subplot(4, 3, emplacement)
 plot(t(1:nt0),x(1:nt0), 'b');
 hold on
