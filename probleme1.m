@@ -55,6 +55,8 @@ Cx2y = intercorellation(t, x2, y, nt0, Te, 5);
 Cx3y = intercorellation(t, x3, y, nt0, Te, 8);
 Cx1y = intercorellation(t, x1, y, nt0, Te, 11);
 
+
+
 %Sample the signal, sound it and plot it.
 
 subplot(nombrePlotsX,nombrePlotsY,3)
@@ -101,6 +103,9 @@ hold on
 plot(t(1:nt0),y(1:nt0), 'g');
 hold on
 plot(t(1:nt0),Cxy(1:nt0), 'r');
+xlabel('seconds');
+title('Intercorrelation in the time domain');
+zoom xon;
 end
 
 function f = analyze(t, x, fe, nt0)
@@ -123,7 +128,3 @@ Aeff = sqrt(Pm);
 disp("Aeff = "+ Aeff+ " W^(1/2)")
 disp("------------------------------------")
 end
-
-
-
-
