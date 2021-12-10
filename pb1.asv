@@ -1,0 +1,46 @@
+clear
+clc
+
+[y,Fs]=audioread('MarteauPiqueur01.mp3');
+Fs = 44100;
+Ts = 1/Fs;
+S = -48;
+G = 30;
+P_SPL = 60;
+Dt = 1;
+dt = 0.5;
+n = height(y);
+K=((0.01/Ts)-1)/2;
+
+isNoise = false;
+countSilent = 0;
+countNoise = 0;
+
+for i=K+1:n-K
+    if Pdbm(i)<P_SPL
+        countSilent = countSilent+1;
+        if countSilent >= 22050 && isNoise==true
+            isNoise = false;
+            disp("Bruit pénible pendant : " + countNoise/Fs + "s")
+            disp("Puissance moyenne du bruit : ")
+        end
+    end
+
+    if Pdbm(i)>=P_SPL
+        countNoise = countSilent + 1;
+        if countNoise >= 44100 && isNoise==false
+            isNoise = true;
+            disp("Silence pendant : " + countSilent/Fs + "s")
+        end
+    end
+end
+
+function Pdbm = Pdbm(i)
+[y,Fs]=audioread('MarteauPiqueur01.mp3');
+Ts = 1/Fs;
+nt0 = height(y);
+d=0.01;
+K = ceil(((d/Ts)-1)/2);
+P = ((1/(2*K+1))*sum(y(i-K:i+K).^2));
+Pdbm = 10*log10(P/(10^(-3)));
+end

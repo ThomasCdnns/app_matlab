@@ -6,7 +6,7 @@ puissanceInstant('Jardin01.mp3')
 puissanceInstant('Jardin02.mp3')
 puissanceInstant('Ville01.mp3')
 
-function a = puissanceInstant(file)
+function P = puissanceInstant(file)
 [y,Fs]=audioread(file);
 Ts = 1/Fs;
 nt0 = height(y);
