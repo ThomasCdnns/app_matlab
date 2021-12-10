@@ -1,9 +1,6 @@
 clear
 clc
 
-nombrePlotsX = 4;
-nombrePlotsY = 3;
-
 f0 = 1000; %Fréquence du sinus
 fe = 16000; %Fréquence d'échantillonage
 A=2;
@@ -12,7 +9,8 @@ Te = 1/fe;
 D = 2;
 t = (0:Te:D);
 nt0 = ceil(5*(T0/Te)); % nbre d'échantillons
-K = ((D/T0)-1)/2;
+d=0.01;
+K = ((d/T0)-1)/2;
 
 figure;
 subplot(nombrePlotsX,nombrePlotsY,1);
@@ -35,9 +33,6 @@ for i = 1:length(modulo)
 end
 subplot(nombrePlotsX,nombrePlotsY,7);
 analyze(t, x3, fe, nt0);
-% les superposer
-% max d'intercollération 
-% autocorrélation
 
 nt0 = ceil(5*(T0/Te));
 B=1.80; % à corriger
@@ -50,42 +45,44 @@ y = B*sin(2*pi*f0*t+phi);
 subplot(nombrePlotsX,nombrePlotsY,10);
 analyze(t, y, fe, nt0);
 
-% Autocorrélation 
-Cx1 = intercorellation(t, x1, x1, nt0, Te, 2);
-Cx2y = intercorellation(t, x2, y, nt0, Te, 5);
-Cx3y = intercorellation(t, x3, y, nt0, Te, 8);
-Cx1y = intercorellation(t, x1, y, nt0, Te, 11);
-
-%Sample the signal, sound it and plot it.
-
 marteaufile = 'MarteauPiqueur01.mp3';
 jardin1file = 'Jardin01.mp3';
 jardin2file = 'Jardin02.mp3';
 ville1file = 'Ville01.mp3';
 
-disp(puissanceinstant(fileToSignal(fe, marteaufile), nt0, K))
-subplot(nombrePlotsX,nombrePlotsY,3)
-plot(getTime(fe, marteaufile),fileToSignal(fe, marteaufile))
-title('MarteauPiqueur01.mp3 : Temporal signal variation')
-xlabel('time(s)')
+S = -48;
+G = 30;
+P_SPL = 60;
+Dt = 1;
+dt = 0.5;
+K=(1/100*Te-1)/2;
 
-disp(puissanceinstant(fileToSignal(fe, jardin1file), nt0, K))
-subplot(nombrePlotsX,nombrePlotsY,6)
-plot(getTime(fe, jardin1file),fileToSignal(fe, jardin1file))
-title('Jardin01.mp3 : Temporal signal variation')
-xlabel('time(s)')
+[y,Fs]=audioread(marteaufile);
+n = length(y);
+isNoise = false;
+countSilent = 0;
+countNoise = 0;
 
-disp(puissanceinstant(fileToSignal(fe, jardin2file), nt0, K))
-subplot(nombrePlotsX,nombrePlotsY,9)
-plot(getTime(fe, jardin2file),fileToSignal(fe, jardin2file))
-title('Jardin02.mp3 : Temporal signal variation')
-xlabel('time(s)')
+puissancemoyenne(marteaufile)
 
-disp(puissanceinstant(fileToSignal(fe, ville1file), nt0, K))
-subplot(nombrePlotsX,nombrePlotsY,12)
-plot(getTime(fe, ville1file),fileToSignal(fe, ville1file))
-title('Ville01.mp3 : Temporal signal variation')
-xlabel('time(s)')
+for i=1:n-K
+    if <P_SPL
+        countSilent = countSilent+1;
+        if countSilent >= 22050 && isNoise==true
+            isNoise = false;
+            disp("Bruit pénible pendant : " + countNoise/Fs + "s")
+            disp("Puissance moyenne du bruit : ")
+        end
+    end
+       
+    if y(1,i)>=P_SPL
+        countNoise = countSilent + 1;
+        if countNoise >= 44100 && isNoise==false
+            isNoise = true;
+            disp("Silence pendant : " + countSilent/Fs + "s")
+        end
+    end
+end
 
 function time = getTime(Fs, file)
 [y,Fs]=audioread(file);
@@ -116,10 +113,16 @@ title('Intercorrelation in the time domain');
 zoom xon;
 end
 
-function P = puissanceinstant(x,nt0,K)
+function P = puissanceinstant(file)
+[x,Fs]=audioread(file);
+length = getTime(Fs, file);
+Ts = 1/Fs;
+nt0 = length/Ts;
+d=0.01;
+K = ((d/Ts)-1)/2;
 P=1;
 for n=K+1:nt0-K
-    P = (1/(2*K+1)*sum(x(n-K:n+K).^2));
+    P(n) = (1/(2*K+1)*sum(x(n-K:n+K).^2));
 end
 end
 
