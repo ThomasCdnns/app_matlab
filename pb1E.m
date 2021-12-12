@@ -17,6 +17,13 @@ phi = pi/3;
 
 y = B*sin(2*pi*f0*t+phi);
 
+Cx = [];
+nx = length(x);
+x1 = [x,zeros(1,nx-1)];
+for i=1:nx
+    Cx = [Cx, (1/nx)*sum(x.*x1(i:nx+i-1))];
+end
+
 Cxy = [];
 nx = length(x);
 y1 = [y,zeros(1,nx-1)];
@@ -25,6 +32,14 @@ for i=1:nx
 end
 
 figure;
+subplot(1,2,1)
+plot(t(1:n), x(1:n), 'b')
+hold on
+plot(t(1:n),Cx(1:n), 'g')
+xlabel('seconds')
+title('Autocorrelation of signal x')
+
+subplot(1,2,2)
 plot(t(1:n), y(1:n), 'b')
 hold on
 plot(t(1:n),x(1:n), 'g')

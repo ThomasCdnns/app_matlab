@@ -3,42 +3,94 @@ clc
 
 [y,Fs]=audioread('MarteauPiqueur01.mp3');
 Ts = 1/Fs;
-S = -48; %3,98mV
+S = -48;
 G = 30;
+G_DB = 20*log10(G);
+pressionRef = 94;
 P_SPL = 80;
 Dt = 1;
 dt = 0.5;
-n = height(y);
-K=ceil(((0.01/Ts)-1)/2);
+n = length(y);
+D=0.001;
+K=ceil(((D/Ts)-1)/2);
+t = (0:(n-1))*Ts;
 
-isNoise = false;
-countSilent = 0;
-countNoise = 0;
+subplot(2,1,1)
+plot(t,y)
+title('Signal in the time domain')
+xlabel('s')
+ylabel('V')
+grid on;
+zoom xon;
 
-for i=K+1:n-K
-    if Pdbm(i)+G<(-P_SPL)
-        countSilent = countSilent+1;
-        if countSilent >= dt*Fs && isNoise==true
-            isNoise = false;
-            disp("Bruit pénible pendant : " + countNoise/Fs + "s")
-            disp("Puissance moyenne du bruit : ")
+tensionRMS = 10^((P_SPL+S-pressionRef)/20);
+triggerValue = 10*log10((tensionRMS^2)/0.001)+G_DB+8;
+
+Pdbm = PDBM('MarteauPiqueur01.mp3');
+PnoiseDef = find(Pdbm>=triggerValue);
+noises = zeros(1,n);
+noises (PnoiseDef) = 1;
+TnoiseDef = ceil(Dt*Fs);
+TsilenceDef = ceil(dt*Fs);
+
+noisesList = noises;
+i0 = 1;
+previousNoise = noises(1);
+for i=2:length(noises)-1
+    if noises(i) ~= previousNoise
+        index = i-i0;
+        if index >= TnoiseDef && previousNoise == 1
+            noisesList(i0:i-1)=1;
         end
-    end
-
-    if Pdbm(i)+G>=(-P_SPL)
-        countNoise = countSilent + 1;
-        if countNoise >= Dt*Fs && isNoise==false
-            isNoise = true;
-            disp("Silence pendant : " + countSilent/Fs + "s")
+        if index <= TsilenceDef && previousNoise == 0
+            noisesList(i0:i-1)=1;
         end
+        i0 = i;
+        previousNoise = noises(i);
+        index = 0;
     end
 end
 
-function output = Pdbm(i)
-[y,Fs]=audioread('MarteauPiqueur01.mp3');
+subplot(2,1,2)
+plot(t,noisesList)
+title('Boolean noise detection')
+xlabel('time')
+ylabel('0: silence, 1:noise')
+grid on;
+zoom xon;
+
+stateSwitches = zeros(1,length(noisesList));
+for i = 1:length(noisesList)-1
+    if noisesList(i) ~= noisesList(i+1)
+        stateSwitches(i) = i;
+    end
+end
+stateSwitches = find(stateSwitches>0);
+
+for i=1:length(stateSwitches)/2
+    startIndex = (2*i)-1;
+    endIndex = 2*i;
+    noiseTimeLength = abs((stateSwitches(startIndex) - stateSwitches(endIndex))*Ts);
+    disp("Noise " + i + " lasts : " + noiseTimeLength)
+
+    P = sum(y(stateSwitches(startIndex):stateSwitches(endIndex)).*y(stateSwitches(startIndex):stateSwitches(endIndex)))/abs(stateSwitches(startIndex)-stateSwitches(endIndex));
+    Aeff = sqrt(P);
+    P_dbm = 10*log10(P/(10^(-3)));
+    disp("Pm of noise " + i + " is : " + P + "mW")
+    disp("Pm of noise " + i + " is : " + P_dbm + "dB")
+    disp("RMS tension of noise " + i + " is : " + Aeff + "V")
+end
+
+
+function Pdbm = PDBM(file)
+[y,Fs]=audioread(file);
 Ts = 1/Fs;
-d=0.001;
+N = length(y);
+d=0.0001;
 K = ceil(((d/Ts)-1)/2);
-P = ((1/(2*K+1))*sum(y(i-K:i+K).^2));
-output = 10*log10(P/(10^(-3)));
+P = zeros(1,N-2*K-1);
+for n=K+1:N-K
+    P(n) = mean(y(n-K:n+K).^2);
+end
+Pdbm = 10*log10(P/(10^(-3)));
 end
