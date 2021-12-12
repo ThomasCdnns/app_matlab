@@ -1,7 +1,12 @@
 clear
 clc
 
-[y,Fs]=audioread('MarteauPiqueur01.mp3');
+%file="MarteauPiqueur01.mp3";
+%file="Jardin01.mp3";
+%file="Jardin02.mp3";
+file="Ville01.mp3";
+
+[y,Fs]=audioread(file);
 Ts = 1/Fs;
 S = -48;
 G = 30;
@@ -16,7 +21,7 @@ K=ceil(((D/Ts)-1)/2);
 t = (0:(n-1))*Ts;
 
 subplot(2,1,1)
-plot(t,y)
+plot(t(1:n),y(1:n))
 title('Signal in the time domain')
 xlabel('s')
 ylabel('V')
@@ -24,7 +29,7 @@ grid on;
 zoom xon;
 
 tensionRMS = 10^((P_SPL+S-pressionRef)/20);
-triggerValue = 10*log10((tensionRMS^2)/0.001)+G_DB+8;
+triggerValue = 10*log10((tensionRMS^2)/0.001)+G_DB;
 
 Pdbm = PDBM('MarteauPiqueur01.mp3');
 PnoiseDef = find(Pdbm>=triggerValue);
@@ -52,7 +57,7 @@ for i=2:length(noises)-1
 end
 
 subplot(2,1,2)
-plot(t,noisesList)
+plot(t(1:n),noisesList(1:n), 'r')
 title('Boolean noise detection')
 xlabel('time')
 ylabel('0: silence, 1:noise')
@@ -71,12 +76,12 @@ for i=1:length(stateSwitches)/2
     startIndex = (2*i)-1;
     endIndex = 2*i;
     noiseTimeLength = abs((stateSwitches(startIndex) - stateSwitches(endIndex))*Ts);
-    disp("Noise " + i + " lasts : " + noiseTimeLength)
+    disp("Noise " + i + " lasts : " + noiseTimeLength + "s")
 
     P = sum(y(stateSwitches(startIndex):stateSwitches(endIndex)).*y(stateSwitches(startIndex):stateSwitches(endIndex)))/abs(stateSwitches(startIndex)-stateSwitches(endIndex));
     Aeff = sqrt(P);
     P_dbm = 10*log10(P/(10^(-3)));
-    disp("Pm of noise " + i + " is : " + P + "mW")
+    disp("Pm of noise " + i + " is : " + P*(10^3) + "mW")
     disp("Pm of noise " + i + " is : " + P_dbm + "dB")
     disp("RMS tension of noise " + i + " is : " + Aeff + "V")
 end

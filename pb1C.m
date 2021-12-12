@@ -13,7 +13,7 @@ n = ceil(5*(T0/Te)); % nbre d'échantillons
 x = A*sin(2*pi*f0*t);
 
 x3 = abs(x);
-subplot(1,2,1);
+subplot(2,1,1);
 plot(t(1:n),x3(1:n));
 xlabel('seconds');
 title('Signal in the time domain - 5 periods');
@@ -41,7 +41,7 @@ for i = 1:length(modulo)
         x4 = [x4, 0.5];
     end
 end
-subplot(1,2,2);
+subplot(2,1,2);
 plot(t(1:n),x4(1:n));
 xlabel('seconds');
 title('Signal in the time domain - 5 periods');

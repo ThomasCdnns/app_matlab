@@ -32,14 +32,14 @@ for i=1:nx
 end
 
 figure;
-subplot(1,2,1)
+subplot(2,1,1)
 plot(t(1:n), x(1:n), 'b')
 hold on
 plot(t(1:n),Cx(1:n), 'g')
 xlabel('seconds')
 title('Autocorrelation of signal x')
 
-subplot(1,2,2)
+subplot(2,1,2)
 plot(t(1:n), y(1:n), 'b')
 hold on
 plot(t(1:n),x(1:n), 'g')

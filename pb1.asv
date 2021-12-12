@@ -3,17 +3,19 @@ clc
 
 [y,Fs]=audioread('MarteauPiqueur01.mp3');
 Ts = 1/Fs;
-S = -48; %3,98mV
+S = -48;
 G = 30;
 G_DB = 20*log10(G);
 pressionRef = 94;
 P_SPL = 80;
 Dt = 1;
 dt = 0.5;
-n = lenght(y);
-D=0.01;
+n = length(y);
+D=0.001;
 K=ceil(((D/Ts)-1)/2);
-t = (0:(N-1))*Ts;
+t = (0:(n-1))*Ts;
+
+
 
 subplot(2,1,1)
 plot(t,y)
@@ -24,7 +26,7 @@ grid on;
 zoom xon;
 
 tensionRMS = 10^((P_SPL+S-pressionRef)/20);
-triggerValue = 10*log10((tensionRMS^2)/(10^(-3)))+G_DB;
+triggerValue = 10*log10((tensionRMS^2)/0.001)+G_DB;
 
 Pdbm = PDBM('MarteauPiqueur01.mp3');
 PnoiseDef = find(Pdbm>=triggerValue);
@@ -34,16 +36,15 @@ TnoiseDef = ceil(Dt*Fs);
 TsilenceDef = ceil(dt*Fs);
 
 noisesList = noises;
-
 i0 = 1;
 previousNoise = noises(1);
-for i=1:length(noises)-1
+for i=2:length(noises)-1
     if noises(i) ~= previousNoise
         index = i-i0;
         if index >= TnoiseDef && previousNoise == 1
             noisesList(i0:i-1)=1;
         end
-        if index <= TnoiseDef && previousNoise == 0
+        if index <= TsilenceDef && previousNoise == 0
             noisesList(i0:i-1)=1;
         end
         i0 = i;
@@ -54,15 +55,19 @@ end
 
 subplot(2,1,2)
 plot(t,noisesList)
-title('Noise boolean detection')
+title('Boolean noise detection')
 xlabel('time')
 ylabel('0: silence, 1:noise')
 grid on;
 zoom xon;
 
-stateSwitches = ischange(noisesList);
-stateSwitches = noisesList.*stateSwitches;
-stateSwitches = find(stateSwitches~=0);
+stateSwitches = zeros(1,length(noisesList));
+for i = 1:length(noisesList)-1
+    if noisesList(i) ~= noisesList(i+1)
+        stateSwitches(i) = i;
+    end
+end
+stateSwitches = find(stateSwitches>0);
 
 for i=1:length(stateSwitches)/2
     startIndex = (2*i)-1;
@@ -73,8 +78,10 @@ for i=1:length(stateSwitches)/2
     P = sum(y(stateSwitches(startIndex):stateSwitches(endIndex)).*y(stateSwitches(startIndex):stateSwitches(endIndex)))/abs(stateSwitches(startIndex)-stateSwitches(endIndex));
     Aeff = sqrt(P);
     P_dbm = 10*log10(P/(10^(-3)));
-    disp("Pm of noise " + i + "is : " + P + "m")
-    disp("Pm of noise " + i + "is : " + P)
+    disp("Pm of noise " + i + " is : " + P*(10^3) + "mW")
+    disp("Pm of noise " + i + " is : " + P_dbm + "dB")
+    disp("RMS tension of noise " + i + " is : " + Aeff + "V")
+end
 
 
 function Pdbm = PDBM(file)

@@ -9,7 +9,7 @@ Te = 1/fe;
 D = 2;
 t = (0:Te:D);
 n = ceil(5*(T0/Te)); % nbre d'échantillons
-B=1.80; % à corriger
+B=1.78;
 phi = pi/3;
 y = B*sin(2*pi*f0*t+phi);
 
