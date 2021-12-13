@@ -20,10 +20,10 @@ title('Signal in the time domain - 5 periods');
 zoom xon;
 disp("Fréquence échantillonage : "+ fe);
 % valeur moyenne
-Vm = mean(x(1:n));
+Vm = mean(x3(1:n));
 disp("Vm = "+ Vm)
 % puissance moyenne
-Pm = mean(x(1:n).^2);
+Pm = mean(x3(1:n).^2);
 Pdbm = 10*log10((Pm/10^(-3)));
 disp("Pm = "+ Pm +" W") % en W
 disp("Pdbm = "+ Pdbm +" dBm") % en dBm
