@@ -20,7 +20,7 @@ D=0.001;
 K=ceil(((D/Ts)-1)/2);
 t = (0:(n-1))*Ts;
 
-subplot(2,1,1)
+subplot(3,1,1)
 plot(t(1:n),y(1:n))
 title('Signal in the time domain')
 xlabel('s')
@@ -56,7 +56,7 @@ for i=2:length(noises)-1
     end
 end
 
-subplot(2,1,2)
+subplot(3,1,2)
 plot(t(1:n),noisesList(1:n), 'r')
 title('Boolean noise detection')
 xlabel('time')
@@ -77,13 +77,27 @@ for i=1:length(stateSwitches)/2
     endIndex = 2*i;
     noiseTimeLength = abs((stateSwitches(startIndex) - stateSwitches(endIndex))*Ts);
     disp("Noise " + i + " lasts : " + noiseTimeLength + "s")
+    subplot(3,1,3)
+    dsp_max = DSP(Fs, y, startIndex, endIndex);
+    disp("DSP Max for noise "+ i+ " :" + dsp_max)
+end
 
-    P = sum(y(stateSwitches(startIndex):stateSwitches(endIndex)).*y(stateSwitches(startIndex):stateSwitches(endIndex)))/abs(stateSwitches(startIndex)-stateSwitches(endIndex));
-    Aeff = sqrt(P);
-    P_dbm = 10*log10(P/(10^(-3)));
-    disp("Pm of noise " + i + " is : " + P*(10^3) + "mW")
-    disp("Pm of noise " + i + " is : " + P_dbm + "dB")
-    disp("RMS tension of noise " + i + " is : " + Aeff + "V")
+function dsp_max = DSP(Fs, x, startIndex, endIndex)
+x = x(startIndex::endIndex)
+N = length(x);
+xdft = fft(x);
+xdft = xdft(1:N/2+1);
+psdx = (1/(Fs*N)) * abs(xdft).^2;
+psdx(2:end-1) = 2*psdx(2:end-1);
+frequency_step = Fs/length(x);
+freq = 0:frequency_step:Fs/2;
+plot(freq,10*log10(psdx))
+grid on
+title('Periodogram Using FFT')
+xlabel('Frequency (Hz)')
+ylabel('Power/Frequency (dB/Hz)')
+[M,I] = max(psdx);
+dsp_max = 10*log10(M);
 end
 
 
