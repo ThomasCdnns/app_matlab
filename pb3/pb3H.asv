@@ -5,7 +5,7 @@ clc
 [y,Fs]=audioread('Pi_C_96K.wav');
 
 %Resampling the signal
-k = 6;
+k = 20;
 Ts = 1/Fs;
 Tek = k * Ts;
 Fek = Fs/k;
@@ -19,7 +19,7 @@ subplot(3,1,1);
 plot(t,z1)
 title('Temporal signal variation')
 xlabel('time(s)')
-soundsc(z1,Fek);
+soundsc(z1);
 Y = fft(z1);
 L=length(z1);
 
