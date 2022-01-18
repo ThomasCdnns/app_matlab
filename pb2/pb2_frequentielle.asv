@@ -1,2 +1,67 @@
-clc;
-clear 
+%Probleme II 1)
+%New Pilot
+
+clear all
+choix = input('Choix du son [0-9]: ');
+if choix == 0
+    [y, Fe] = audioread('100.wav');
+elseif choix == 1
+    [y, Fe] = audioread('101.wav');
+elseif choix == 2
+    [y, Fe] = audioread('102.wav');
+elseif choix == 3
+    [y, Fe] = audioread('103.wav');
+elseif choix == 4
+    [y, Fe] = audioread('104.wav');
+elseif choix == 5
+    [y, Fe] = audioread('105.wav');
+elseif choix == 6
+    [y, Fe] = audioread('106.wav');
+elseif choix == 7
+    [y, Fe] = audioread('107.wav');
+elseif choix == 8
+    [y, Fe] = audioread('108.wav');
+elseif choix == 9
+    [y, Fe] = audioread('109.wav');
+end
+index=find(y>0.2);
+y=y(index);
+
+N = length(y);              % N est le nombre de données
+t = (0:N-1)/Fe;             % t est la période(le vecteur temps) et Fe la fréquence d'échantillonage du signal  (T0=N/Fe)
+
+figure(12)                      % Ajout d'une première figure
+subplot(2,1,1)              % Création du premier graphique 
+plot(t,y)                   %
+title('Son');
+xlabel('Temps (s)');
+ylabel('Amplitude');
+grid on                     % Affichage de la grille (optionnel)
+
+
+FFT  = 20*log10(abs(fft(y))); % Calcul de la FFT en dB du signal
+L1=length(FFT);
+f=0:Fe/L1:(L1-1)*Fe/L1;
+
+% Affichage de la FFT
+figure(12)
+subplot(2,1,2)              %
+plot(FFT)                   %
+title('FFT');
+grid on                     %
+xlabel('Fréquence Hz')
+ylabel('dB')
+xlim([0 50])                % On limite l'axe des abscisses entre 0 et 50 pour avoir un graphe lisible
+
+seuil = 6;                  % On pose arbitrairement le seuil à 6, au delà de 6, on considère que le signal représente un battement de coeur
+FFTA = FFT(seuil:20) ;       % On tronque la FFT pour les valeurs entre le seuil et 20
+[max,indmax] = max(FFTA);    % On crée une liste qui récupère les indices des valeurs où le signal est supérieur ou égal à 20
+bpm=(((indmax+seuil-2)*Fe)/N) * 60; % On affiche le bpm
+disp("bpm = "+bpm)
+
+%fichier :     101|102|103|104|105|106|107|108|109|100
+%FC attendue : 66 |72 |68 |78 |84 |60 |70 |66 |93 |75
+%FC par peak : 66 |84 |66 |90 |84 |60 |72 |72 |108|78
+%FC par FFT :  66 |72 |72 |72 |84 |60 |72 |60 |96 |72
+
+%On observe une plus grande précisions avec l'utilisation de la FFT
