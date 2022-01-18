@@ -1,8 +1,11 @@
 clc
 clear
 
-file="105.wav";
-disp(getBPM(file))
+for i = 0:1:9
+    file="10"+i+".wav";
+    disp(getBPM(file))
+end
+
 
 function bpm = getBPM(file)
 
@@ -36,6 +39,6 @@ max_value_1 = max(y(Fs+(Fs*i)/2:(Fs*i)/2+3*Fs/2));
         end
     end
 end
-bpm=sum(R)/k+1;
+bpm=round(sum(R)/k+1);
 end
 
