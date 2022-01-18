@@ -32,7 +32,7 @@ fft_size=length(fft_y);
 f=0:Fs/fft_size:(fft_size-1)*Fs/fft_size;
 triggerValue = 5; %valeur arbitraire
 fft1 = fft_y(triggerValue:20);
-[max_value,max_indice] = max_value(fft1);
+[max_value,max_indice] = max(fft1);
 bpm=(((max_indice+triggerValue-2)*Fs)/y_size) * 60;
 disp("BPM : " + bpm)
 
@@ -50,4 +50,3 @@ title('FFT');
 xlabel('Fréquence en Hertz')
 ylabel('dB')
 grid on
-
