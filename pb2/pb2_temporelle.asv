@@ -1,19 +1,48 @@
 clc
 clear
-[y,Fe] = audioread('101.wav');
-
-%Affichage
-figure(1) 
-Ts = 1/Fe;
-nbr_elts = length(y);
-duree = (nbr_elts-1)*Ts;
-t = 0:Ts:duree;
-plot(t,y)
-
-if (max(y)-mean(y)>mea)
-    disp(mean(y))
+%Test pour tous les signaux de 100.wav à 109.wav
+for i=0:1:1
+    file = "10"+i+".wav";
+    disp(getBPM(file))
 end
 
 
+function bpm = getBPM(file)
 
+[y, Fs] = audioread(file);
+Ts = 1/Fs;
+y_size = length(y);
+duree = (y_size-1)*Ts;
+t = 0:Ts:duree;
+figure(1) 
+plot(t,y)
+
+%R because of the QRS detection pattern
+R = zeros(2,20);
+S = zeros(2,20);
+
+for i = 1:1:lenght(y)
+    %Changer l'offset du signal si jamais on doit le corriger
+    if y(i)>0.1 && y(i-1)<= 0.1
+       for k=i:Ts:length(y)-i
+           y(k)=y(k)-(y(i)-y(i-1));
+       end
+    end
+end
+
+[temp_maxs, temp_indices_maxs] = max(y);
+[temp_mins, temp_indices_mins] = min(y);
+k=0;
+for i = 1:1:length(temp_maxs)
+    for j = 1:1:length(temp_mins);
+    if temp_indices_mins(i)<temp_indices_maxs(i+1) && temp_indices_maxs(i)-temp_indices_mins(i)<0.2
+        R(k)=[temp_maxs(i), temp_indices_maxs(i)];
+        S(k)=[temp_mins(i), temp_indices_mins(i)];
+
+
+
+maxVal = max(y(1));
+indiceMax = find(y == maxVal);
+bpm = 1;
+end
 
