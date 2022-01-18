@@ -5,7 +5,7 @@ clc
 [y,Fs]=audioread('Pi_C_96K.wav');
 
 %Resampling the signal
-k = 6;
+k = 20;
 Ts = 1/Fs;
 Tek = k * Ts;
 Fek = Fs/k;

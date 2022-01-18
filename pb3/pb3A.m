@@ -13,7 +13,7 @@ t = (0:Te1:D);
 n = ceil(5*(T0/Te1));
 
 figure;
-subplot(2,1,1)
+subplot(2,1,1)v  
 x = A*sin(2*pi*f0*t);
 plot(t(1:n),x(1:n))
 xlabel('seconds')

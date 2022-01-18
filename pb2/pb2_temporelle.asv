@@ -1,0 +1,19 @@
+clc
+clear
+[y,Fe] = audioread('101.wav');
+
+%Affichage
+figure(1) 
+Ts = 1/Fe;
+nbr_elts = length(y);
+duree = (nbr_elts-1)*Ts;
+t = 0:Ts:duree;
+plot(t,y)
+
+if (max(y)-mean(y)>mea)
+    disp(mean(y))
+end
+
+
+
+

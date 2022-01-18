@@ -4,7 +4,7 @@ clc
 %file="MarteauPiqueur01.mp3";
 %file="Jardin01.mp3";
 %file="Jardin02.mp3";
-file="Ville01.mp3";
+file="109.wav";
 
 [y,Fs]=audioread(file);
 Ts = 1/Fs;
