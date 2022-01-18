@@ -28,8 +28,6 @@ y_size = length(y);
 t = (0:y_size-1)/Fs;
 
 fft_y = 20*log10(abs(fft(y)));
-fft_size=length(fft_y);
-f=0:Fs/fft_size:(fft_size-1)*Fs/fft_size;
 triggerValue = 5; %valeur arbitraire
 fft1 = fft_y(triggerValue:20);
 [max_value,max_indice] = max(fft1);
