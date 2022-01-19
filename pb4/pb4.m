@@ -1,111 +1,97 @@
-clc;
-close all;
+clc
+clear
+file = "scieTronc.mp3";
+getNoise(file)
 
-load('filtre.mat');
-[occurrences, test] = occurrences_note('notesFlute.wav', h);
-disp(occurrences + " occurences found over " + test + " tests.")
-[occurrences, test] = occurrences_note('NotesPiano.wav', h);
-disp(occurrences + " occurences found over " + test + " tests.")
-[occurrences, test] = occurrences_note('AccordsPiano.wav', h);
-disp(occurrences + " occurences found over " + test + " tests.")
+function noise = getNoise(file)
 
-function [occurrences, test] = occurrences_note(fichier, filtre)
+load('lowpass.mat')
+[y, Fs] = audioread(file);
 
-		result1 = "Note SOL présente entre  %2.1f et  %2.1f s\n";
-        disp("================================================")
-        disp(fichier);
-		[y, Fe] = audioread(fichier);
-		[length, channels] = size(y);
+Ts = 1/Fs;
+duration = (length(y)-1)*Ts;
+t = 0:Ts:duration;
+N = length(t);
 
-		if (channels >= 2)				      
-			y = mean(y,channels);
+Ta = 5E-2;
+K = round(Ta*Fs);
+if(mod(K,2) ~= 0)
+    K = K + 1;
+end
+P = zeros(1,N);
+for i = K+1:N-K
+    x = mean(y(i-K:i+K).^2);
+    P(i) = x;
+end
+
+noiseTrigger = 3.16E-5;
+infos = zeros(ceil(duration/0.5),3);
+status = 0;
+
+if P(1) > noiseTrigger
+    status = 1;
+    infos(1,1) = 1;
+end
+noiseDuration = 0;
+n = 1;
+for i = 1:N
+    if P(i) < noiseTrigger
+        if status == 1
+            if noiseDuration*Ts >= 1 && (n == 1 || infos(n-1, 1) == 0)
+                infos(n, 1) = status;
+                infos(n, 2) = i-noiseDuration;
+                infos(n, 3) = i;
+                n = n + 1;
+            else
+                infos(max(1,n-1), 3) = infos(max(1,n-1), 3) + noiseDuration;
+            end
+            noiseDuration = 0;
+            status = 0;
         end
+    else
+        if status == 0
+            if noiseDuration*Ts >= 0.5 && (n == 1 || infos(n-1, 1) == 1)
+                infos(n, 1) = status;
+                infos(n, 2) = i-noiseDuration;
+                infos(n, 3) = i;
+                n = n + 1;
+            else
+                infos(max(1,n-1), 3) = infos(max(1,n-1), 3) + noiseDuration;
+            end
+            noiseDuration = 0;
+            status = 1;
+        end
+    end
+    noiseDuration = noiseDuration + 1;
+end
+infos(n, 3) = noiseDuration;
 
-		Te	= 1/Fe;
+noiseSquare = zeros(1,N);
 
-		D_FIR = 1;
+noiseIndices = infos(find(infos(:,1) == 1), 2:3);
+Py = mean(y(noiseIndices(:,1):noiseIndices(:,2)).^2);
 
-		yFiltered = filter(filtre, D_FIR, y);   %Filtering Signal
-       
-		windowTimeFrame = 500e-3;				   
-        stepTimeFrame = windowTimeFrame/2;
+for i = 1:n
+    if infos(i,1) == 1
+        aigus = filter(h1,1,y(infos(i,2):infos(i,3)));
+        Ppenible = mean(aigus.^2);
+        if(Ppenible/Py > 0.2)
+            noiseSquare(infos(i,2):infos(i,3)) = 1;
+        end
+    end
+end
 
-		sizeWindow = round(windowTimeFrame/Te);
-		sizeStep = round(stepTimeFrame/Te);
-		triggerValue = 0.2;					        
-		test = 0;
-		occurrences = 0;	
-        noteStart = 0;
-        
-		for n1 = 1 : sizeStep : length - sizeWindow		 
+figure
+subplot(2,1,1);
+plot(t,y);
+title("Signal" + file)
+xlabel("Temps en secondes")
+ylabel("Amplitude")
 
-			n2 = n1+sizeWindow-1;
-			MeanPY = mean(y(n1:n2).^2)*1000;
-			MeanPWindow = mean(yFiltered(n1:n2).^2)*1000; 
-			if (MeanPWindow >= (MeanPY*triggerValue))
-				if (noteStart == 0)
-					noteStart = n1;                  
-				end
-			else
-				if (noteStart > 0)               
-					T1 = round(noteStart*Te,2);
-					T2 = round(n1*Te,2);
-					fprintf(result1, T1, T2)
-					occurrences = occurrences+1;
-					noteStart = 0;
-				end
-			end
-            test = test+1;
-		end
-		if (noteStart > 0)
-			T1 = round(noteStart*Te,2);		 % Valeurs temporelle indice de debut
-			T2 = round(length *Te,2);    % Valeurs temporelle indice de fin
-			fprintf(result1, T1, T2);  % Afficher le message de présences
-			occurrences = occurrences+1;		 % Compter le nombre de présences
-		end
+subplot(2,1,2);
+plot(t,noiseSquare);
+title("Est un son pénible")
+xlabel("Temps en secondes")
+ylabel("pénible: 1, sinon: 0")
 
-		if (occurrences == 0)
-			disp(["La note SOL n'est pas présente dans le fichier ", fichier]);
-		end
-
-		time = (0:length-1)*Te;
-        duree = round(length*Te);
-
- 		f = (0:length-1)*(Fe/length);
-
- 		FFT_y = abs(fft(y));	
-        FFT_yFiltered = abs(fft(yFiltered));
-
-		Amax = max(y)*1.1;
-        
-		figure;
-
- 		subplot(221);	
-        plot(time,y);
- 		title(fichier);
-        xlabel('Temps (s)');
-        ylabel('Amplitude (V)');
-        xticks(0:duree);	
-        ylim([-Amax Amax]);
-
-        subplot(222);	
-        plot(time,yFiltered);
- 		title('Signal Filtré'); 
-        xlabel('Temps (s)'); 
-        ylabel('Amplitude (V)');
-        xticks(0:duree);
-        ylim([-Amax Amax]); 
-        grid on;
-
- 		subplot(223);	
-        plot(f,FFT_y);
- 		title('FFT avant filtrage');
-        xlabel('Fréquence (Hz)'); 
-        ylabel('|FFT y| - Magnitude');
-        
-		subplot(224);	
-        plot(f,FFT_yFiltered);
- 		title('FFT après filtrage');
-        xlabel('Fréquence (Hz)');
-        ylabel('|FFT yFiltered| - Magnitude');
 end

@@ -22,7 +22,7 @@ elseif choix == 9
     [y, Fs] = audioread('109.wav');
 end
 
-index=find(y>0.4);
+index=find(y>0.2);
 y=y(index);
 y_size = length(y);
 t = (0:y_size-1)/Fs;
